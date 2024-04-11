@@ -5,7 +5,7 @@ function getApiKey() {
       if (result.apiKey) {
         resolve(result.apiKey);
       } else {
-        reject('APIキーが見つかりません。');
+        reject("APIキーが見つかりません。");
       }
     });
   });
@@ -16,25 +16,28 @@ async function translateArray(Array) {
   const apiKey = await getApiKey();
   const stringifyArray = JSON.stringify(Array);
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const response = await fetch("https://api.cohere.ai/v1/chat", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      messages: [
+      model: "command-r",
+      chat_history: [
         {
-          role: "system",
-          content:
-            "あなたは優秀な翻訳家です。以下の配列の要素を日本語に翻訳して置き換えてください。",
+          role: "USER",
+          message:
+            "あなたは優秀な翻訳家です。ユーザーから提供される配列の要素を日本語に翻訳して、置換したあと配列のみを送信してください。ダブルクォーテーションは消さないでください。",
         },
-        { role: "user", content: stringifyArray},
+        {
+          role: "CHATBOT",
+          message: "はい、私は優秀な翻訳家です。配列の提供を待機します。",
+        },
       ],
-      max_tokens: 4096,
-      temperature: 0.9,
-    })
+      message: stringifyArray,
+      max_tokens: 2048,
+    }),
   });
 
   if (!response.ok) {
@@ -44,9 +47,14 @@ async function translateArray(Array) {
   }
 
   const data = await response.json();
-  const translatedArray = data.choices[0].message.content.trim();
-  const tokens = data.usage.total_tokens;
-  return { translatedText: translatedArray, tokens: tokens };
+  const translatedArray = data.text.trim();
+  const input_tokens = data.meta.tokens.input_tokens;
+  const output_tokens = data.meta.tokens.output_tokens;
+  return {
+    translatedText: translatedArray,
+    input_tokens: input_tokens,
+    output_tokens: output_tokens,
+  };
 }
 
 // content.jsからのリクエストを受け取って、関数実行後に返す
