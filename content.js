@@ -1,38 +1,49 @@
-document.addEventListener('DOMContentLoaded', function(event) {
+document.addEventListener("DOMContentLoaded", function (event) {
   // 翻訳するボタンをクリックしたときの処理
-  document.getElementById('exec-translate').addEventListener("click", function () {
-    chrome.tabs.query({ active: true, currentWindow: true },function(tab){
-      chrome.scripting.executeScript({
-        target:{tabId: tab[0].id},
-        function: function(){
-          exec();
-        }
+  document
+    .getElementById("exec-translate")
+    .addEventListener("click", function () {
+      chrome.tabs.query({ active: true, currentWindow: true }, function (tab) {
+        chrome.scripting.executeScript({
+          target: { tabId: tab[0].id },
+          function: function () {
+            exec();
+          },
+        });
       });
     });
-  });
 });
 
 // 実行
 // 各要素を取得、翻訳して置換する
-function exec(){
+function exec() {
+  console.time("exec_time");
   const selectors = ["h1", "h2", "h3", "p", "li"];
   const rawArray = [];
+  const promises = [];
+
   selectors.forEach((selector) => {
     rawArray.length = 0;
     document.querySelectorAll(selector).forEach((element) => {
       rawArray.push(element.textContent);
     });
-
-    translate(rawArray)
-    .then((translation) => {
-      const translatedArray = JSON.parse(translation.translatedText);
-      console.log("selector:"+ selector);
-      console.log(translatedArray);
-      replaceContent(selector, translatedArray);
-    })
-    .catch((error) => {
-      element.textContent = error;
-    });
+    const promise = translate(rawArray)
+      .then((translation) => {
+        const translatedArray = JSON.parse(translation.translatedText);
+        console.log("selector:" + selector);
+        console.log("input_tokens:" + translation.input_tokens);
+        console.log("output_tokens:" + translation.output_tokens);
+        console.log(translatedArray);
+        replaceContent(selector, translatedArray);
+        console.timeLog("exec_time");
+      })
+      .catch((error) => {
+        element.textContent = error;
+      });
+    promises.push(promise);
+  });
+  Promise.all(promises).then(() => {
+    console.timeEnd("execTime");
   });
 }
 
