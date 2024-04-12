@@ -46,7 +46,7 @@ function exec() {
     if (textCount > 1000) {
     }
   });
-  const promise = translate(splittedNodes)
+  const promise = sendAndReceiveTranslateData(splittedNodes)
     .then((response) => {
       //TODO テキストノードベースに変更したがjson.parseでこけてる　あとで直す
       const translatedArray = response.translatedText;
@@ -75,7 +75,7 @@ function replaceContent(textNodes, translatedArray) {
 }
 
 // 翻訳APIへのリクエストの送受信
-async function translate(text) {
+async function sendAndReceiveTranslateData(text) {
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(
       { type: "translate", text: text },
