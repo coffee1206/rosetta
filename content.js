@@ -18,7 +18,6 @@ document.addEventListener("DOMContentLoaded", function (event) {
 // 各要素を取得、翻訳して置換する
 function exec() {
   console.time("exec_time");
-  //TODO ゴミみてえなDOMに対応する必要なし！！！！セレクターで取得するだけでヨシ！！！！リバート！！！！
   const textNodes = []; // selectorsで指定したセレクターのエレメントとテキストをここに格納
   const selectors = ["h1", "h2", "h3", "p", "li"];
   const splittedNodes = [];
@@ -39,39 +38,40 @@ function exec() {
 
   console.log(textNodes);
 
-  textNodes.forEach((textNode, index) => {
-    let textCount = 0;
+  // テキストノードを分割して翻訳に投げる
+  const textCount = 0;
+  textNodes.forEach((textNode) => {
     textCount += textNode.textContent.length;
     splittedNodes.push(textNode);
     if (textCount > 1000) {
+      translateTextNodes(splittedNodes);
+      // 初期化
+      textCount = 0;
+      translateTextNodes.length = 0;
     }
-  });
-  const promise = sendAndReceiveTranslateData(splittedNodes)
-    .then((response) => {
-      //TODO テキストノードベースに変更したがjson.parseでこけてる　あとで直す
-      const translatedArray = response.translatedText;
-      console.log(translatedArray);
-      const jsonparse = JSON.parse(translatedArray);
-      console.log("input_tokens:" + response.input_tokens);
-      console.log("output_tokens:" + response.output_tokens);
-      console.log(jsonparse);
-      replaceContent(textNodes, translatedArray);
-      console.timeLog("exec_time");
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-  promises.push(promise);
-  Promise.all(promises).then(() => {
-    console.timeEnd("execTime");
   });
 }
 
 // 翻訳結果を要素に置換
-function replaceContent(textNodes, translatedArray) {
-  textNodes.forEach((element, index) => {
-    element.textContent = translatedArray[index];
+function replaceContent(textNodes) {
+  textNodes.forEach((textNode) => {
+    textNode.element.textContent = textNode.textContent;
   });
+}
+
+// テキストノードの翻訳
+function translateTextNodes(textNodes) {
+  sendAndReceiveTranslateData(textNodes)
+    .then((response) => {
+      const translatedTextNodes = JSON.parse(response.translatedText);
+      console.log(translatedTextNodes);
+      console.log("input_tokens:" + response.input_tokens);
+      console.log("output_tokens:" + response.output_tokens);
+      replaceContent(translatedTextNodes);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
 }
 
 // 翻訳APIへのリクエストの送受信
