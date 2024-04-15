@@ -31,7 +31,7 @@ function updateTextContent(nodes, translatedTextContents) {
 // 取得した配列を翻訳する
 async function translateNodes(nodes) {
   const apiKey = await getApiKey();
-  const textContents = extractTextContent(nodes);
+  const textContents = JSON.stringify(extractTextContent(nodes));
 
   const response = await fetch("https://api.cohere.ai/v1/chat", {
     method: "POST",
@@ -68,10 +68,10 @@ async function translateNodes(nodes) {
   const input_tokens = data.meta.tokens.input_tokens;
   const output_tokens = data.meta.tokens.output_tokens;
 
-  const translatedNodes = updateTextContent(nodes, translatedTextContents);
+  const translatedTextNodes = updateTextContent(nodes, translatedTextContents);
 
   return {
-    translatedNodes: translatedNodes,
+    translatedTextNodes: translatedTextNodes,
     input_tokens: input_tokens,
     output_tokens: output_tokens,
   };
