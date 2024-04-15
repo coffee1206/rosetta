@@ -11,10 +11,27 @@ function getApiKey() {
   });
 }
 
-// 取得した行列を翻訳する
-async function translateArray(Array) {
+// 連想配列からテキストコンテンツを抽出する
+function extractTextContent(nodes) {
+  const textContents = [];
+  nodes.forEach((node) => {
+    textContents.push(node.textContent);
+  });
+  return textContents;
+}
+
+// 連想配列内のテキストコンテンツを更新する
+function updateTextContent(nodes, translatedTextContents) {
+  nodes.forEach((node, index) => {
+    node.textContent = translatedTextContents[index]
+  });
+  return nodes;
+}
+
+// 取得した配列を翻訳する
+async function translateNodes(nodes) {
   const apiKey = await getApiKey();
-  const stringifyArray = JSON.stringify(Array);
+  const textContents = extractTextContent(nodes);
 
   const response = await fetch("https://api.cohere.ai/v1/chat", {
     method: "POST",
@@ -35,7 +52,7 @@ async function translateArray(Array) {
           message: "はい、私は優秀な翻訳家です。配列の提供を待機します。",
         },
       ],
-      message: stringifyArray,
+      message: textContents,
       max_tokens: 2048,
     }),
   });
@@ -47,11 +64,14 @@ async function translateArray(Array) {
   }
 
   const data = await response.json();
-  const translatedArray = data.text.trim();
+  const translatedTextContents = JSON.parse(data.text.trim());
   const input_tokens = data.meta.tokens.input_tokens;
   const output_tokens = data.meta.tokens.output_tokens;
+
+  const translatedNodes = updateTextContent(nodes, translatedTextContents);
+
   return {
-    translatedText: translatedArray,
+    translatedNodes: translatedNodes,
     input_tokens: input_tokens,
     output_tokens: output_tokens,
   };
@@ -60,7 +80,7 @@ async function translateArray(Array) {
 // content.jsからのリクエストを受け取って、関数実行後に返す
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "translate") {
-    translateArray(request.text)
+    translateNodes(request.text)
       .then((content) => {
         sendResponse({ success: true, content: content });
       })
