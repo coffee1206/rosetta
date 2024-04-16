@@ -1,4 +1,4 @@
-let allNodes = [];
+let allNodes = null;
 
 document.addEventListener("DOMContentLoaded", function (event) {
   // 翻訳するボタンをクリックしたときの処理
@@ -20,10 +20,11 @@ document.addEventListener("DOMContentLoaded", function (event) {
 // 各要素を取得、翻訳して置換する
 function exec() {
   console.time("exec_time");
-  allNodes = Array.from(document.querySelectorAll("body *")); // DOMの揺らぎに対応するため、一度全てのノードを取得
+  allNodes = document.querySelectorAll("body *"); // DOMの揺らぎに対応するため、一度全てのノードを取得
   const textNodes = []; // selectorsで指定したセレクターのエレメントとテキストをここに格納
   const selectors = ["h1", "h2", "h3", "p", "li"];
   const splittedNodes = [];
+  // TODO promisesに翻訳処理実行したものをプッシュしておく
   const promises = [];
 
   // 連想配列としてelementとtextContentを格納
@@ -38,8 +39,6 @@ function exec() {
       textNodes.push(textNode);
     });
   });
-
-  console.log(textNodes);
 
   // テキストノードを分割して翻訳に投げる
   let textCount = 0;
@@ -56,9 +55,16 @@ function exec() {
 }
 // 翻訳結果を要素に置換
 function replaceContent(textNodes) {
-  // TODO allNodesのスコープを広げてフィルターして何番目から取得するか見る
-  textNodes.forEach((textNode, index) => {
-    let targetElement = allNodes.find((element) => {});
+  console.log("textNodes:");
+  console.log(textNodes);
+  textNodes.forEach((textNode) => {
+    convertedTypeArrayAllNodes = [].map.call(allNodes, (element) => {
+      return element;
+    });
+    let targetElement = convertedTypeArrayAllNodes.filter(function (element) {
+      return element.localName === textNode.selector;
+    });
+    targetElement[textNode.elementIndex].textContent = textNode.textContent;
   });
 }
 
