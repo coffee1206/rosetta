@@ -1,3 +1,5 @@
+let allNodes = [];
+
 document.addEventListener("DOMContentLoaded", function (event) {
   // 翻訳するボタンをクリックしたときの処理
   document
@@ -18,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 // 各要素を取得、翻訳して置換する
 function exec() {
   console.time("exec_time");
-  const allNodes =  Array.from(document.querySelectorAll("body *")); // DOMの揺らぎに対応するため、一度全てのノードを取得
+  allNodes = Array.from(document.querySelectorAll("body *")); // DOMの揺らぎに対応するため、一度全てのノードを取得
   const textNodes = []; // selectorsで指定したセレクターのエレメントとテキストをここに格納
   const selectors = ["h1", "h2", "h3", "p", "li"];
   const splittedNodes = [];
@@ -54,9 +56,9 @@ function exec() {
 }
 // 翻訳結果を要素に置換
 function replaceContent(textNodes) {
-// TODO allNodesのスコープを広げてフィルターして何番目から取得するか見る
+  // TODO allNodesのスコープを広げてフィルターして何番目から取得するか見る
   textNodes.forEach((textNode, index) => {
-    let targetElement = allNodes.find((element) => {})
+    let targetElement = allNodes.find((element) => {});
   });
 }
 
