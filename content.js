@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 // 各要素を取得、翻訳して置換する
 function exec() {
   console.time("exec_time");
+  const allNodes =  Array.from(document.querySelectorAll("body *")); // DOMの揺らぎに対応するため、一度全てのノードを取得
   const textNodes = []; // selectorsで指定したセレクターのエレメントとテキストをここに格納
   const selectors = ["h1", "h2", "h3", "p", "li"];
   const splittedNodes = [];
@@ -28,9 +29,9 @@ function exec() {
     let index = 0;
     document.querySelectorAll(selector).forEach((element) => {
       let textNode = {
-        element: element,
+        selector: selector,
         elementIndex: index++,
-        textContent: element.textContent,
+        textContent: element.textContent.trim(),
       };
       textNodes.push(textNode);
     });
@@ -39,7 +40,7 @@ function exec() {
   console.log(textNodes);
 
   // テキストノードを分割して翻訳に投げる
-  const textCount = 0;
+  let textCount = 0;
   textNodes.forEach((textNode) => {
     textCount += textNode.textContent.length;
     splittedNodes.push(textNode);
@@ -47,15 +48,15 @@ function exec() {
       translateTextNodes(splittedNodes);
       // 初期化
       textCount = 0;
-      translateTextNodes.length = 0;
+      splittedNodes.length = 0;
     }
   });
 }
-
 // 翻訳結果を要素に置換
 function replaceContent(textNodes) {
-  textNodes.forEach((textNode) => {
-    textNode.element.textContent = textNode.textContent;
+// TODO allNodesのスコープを広げてフィルターして何番目から取得するか見る
+  textNodes.forEach((textNode, index) => {
+    let targetElement = allNodes.find((element) => {})
   });
 }
 
@@ -63,7 +64,7 @@ function replaceContent(textNodes) {
 function translateTextNodes(textNodes) {
   sendAndReceiveTranslateData(textNodes)
     .then((response) => {
-      const translatedTextNodes = JSON.parse(response.translatedText);
+      const translatedTextNodes = response.translatedTextNodes;
       console.log(translatedTextNodes);
       console.log("input_tokens:" + response.input_tokens);
       console.log("output_tokens:" + response.output_tokens);
