@@ -23,7 +23,7 @@ function extractTextContent(nodes) {
 // 連想配列内のテキストコンテンツを更新する
 function updateTextContent(nodes, translatedTextContents) {
   nodes.forEach((node, index) => {
-    node.textContent = translatedTextContents[index]
+    node.textContent = translatedTextContents[index];
   });
   return nodes;
 }
@@ -32,7 +32,6 @@ function updateTextContent(nodes, translatedTextContents) {
 async function translateNodes(nodes) {
   const apiKey = await getApiKey();
   const textContents = JSON.stringify(extractTextContent(nodes));
-
   const response = await fetch("https://api.cohere.ai/v1/chat", {
     method: "POST",
     headers: {
@@ -45,7 +44,7 @@ async function translateNodes(nodes) {
         {
           role: "USER",
           message:
-            "あなたは優秀な翻訳家です。ユーザーから提供される配列の要素を日本語に翻訳して、置換したあと配列のみを送信してください。ダブルクォーテーションは消さないでください。",
+            "あなたは優秀な翻訳家です。ユーザーから提供される配列の要素を日本語に翻訳して、置換したあと配列のみを送信してください。また配列の要素はダブルクォーテーションで囲んでください。",
         },
         {
           role: "CHATBOT",
