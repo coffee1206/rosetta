@@ -45,7 +45,7 @@ function exec() {
   textNodes.forEach((textNode) => {
     textCount += textNode.textContent.length;
     splittedNodes.push(textNode);
-    if (textCount > 1000) {
+    if (textCount > 3000) {
       translateTextNodes(splittedNodes);
       // 初期化
       textCount = 0;
