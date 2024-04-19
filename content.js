@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 // 各要素を取得、翻訳して置換する
 function exec() {
   console.time("execTime");
-  allNodes = document.querySelectorAll("body *"); // DOMの揺らぎに対応するため、一度全てのノードを取得
+  allNodes = document.querySelectorAll("body *:not(header):not(footer):not(header *):not(footer *)"); // DOMの揺らぎに対応するため、一度全てのノードを取得
   const textNodes = []; // selectorsで指定したセレクターのエレメントとテキストをここに格納
   const selectors = ["h1", "h2", "h3", "p", "li"];
   const splittedNodes = [];
@@ -31,7 +31,7 @@ function exec() {
   // 連想配列としてelementとtextContentを格納
   selectors.forEach((selector) => {
     let index = 0;
-    document.querySelectorAll(selector).forEach((element) => {
+    document.querySelectorAll(selector + ":not(header):not(footer):not(header *):not(footer *)").forEach((element) => {
       let textNode = {
         selector: selector,
         elementIndex: index++,
