@@ -11,19 +11,25 @@ function getApiKey() {
   });
 }
 
-// 連想配列からテキストコンテンツを抽出する
+// 連想配列からテキストコンテンツを抽出し、LLMが読める形に変換する
 function extractTextContent(nodes) {
-  const textContents = [];
-  nodes.forEach((node) => {
-    textContents.push(node.textContent);
-  });
-  return textContents;
+  const textContentsWithTokenArray = nodes.map(node => `[START]${node.textContent}[END]`);
+  const textContentsWithTokenString = textContentsWithTokenArray.join("");
+  return textContentsWithTokenString;
 }
 
 // 連想配列内のテキストコンテンツを更新する
 function updateTextContent(nodes, translatedTextContents) {
+  const tokenRegex = RegExp("\\[START\\]([\\s\\S]*?)\\[END\\]", "g");
+  const removeTokenArray = [];
+  let matchText;
+
+  while ((matchText = tokenRegex.exec(translatedTextContents)) !== null) {
+    removeTokenArray.push(matchText[1]);
+  }
+
   nodes.forEach((node, index) => {
-    node.textContent = translatedTextContents[index];
+    node.textContent = removeTokenArray[index];
   });
   return nodes;
 }
@@ -31,7 +37,7 @@ function updateTextContent(nodes, translatedTextContents) {
 // 取得した配列を翻訳する
 async function translateNodes(nodes) {
   const apiKey = await getApiKey();
-  const textContents = JSON.stringify(extractTextContent(nodes));
+  const textContents = extractTextContent(nodes);
   const response = await fetch("https://api.cohere.ai/v1/chat", {
     method: "POST",
     headers: {
@@ -44,11 +50,11 @@ async function translateNodes(nodes) {
         {
           role: "USER",
           message:
-            "あなたは優秀な翻訳家です。ユーザーから提供される配列の要素を日本語に翻訳して、以下の条件を満たした上で返信してください。置換したあと配列のみを送信してください。補足説明などは不要です。固有名詞と思われる単語は翻訳しないでください。配列の要素はダブルクォーテーションで囲んでください。",
+          "あなたは優秀な翻訳家です。ユーザーから文字列が提供されます。[START]から[END]毎に文、または単語の翻訳を行い、中身を置換してください。[START]と[END]を勝手に消さないでください。固有名詞と思われる単語は翻訳しないでください。",
         },
         {
           role: "CHATBOT",
-          message: "はい、私は優秀な翻訳家です。以下が翻訳後の配列になります。",
+          message: "はい、私は優秀な翻訳家です。以下が回答になります。",
         },
       ],
       message: textContents,
@@ -63,7 +69,7 @@ async function translateNodes(nodes) {
   }
 
   const data = await response.json();
-  const translatedTextContents = JSON.parse(data.text.trim());
+  const translatedTextContents = data.text.trim();
   const input_tokens = data.meta.tokens.input_tokens;
   const output_tokens = data.meta.tokens.output_tokens;
 

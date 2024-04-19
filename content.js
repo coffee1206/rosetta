@@ -1,4 +1,7 @@
 let allNodes = null;
+let promises = [];
+let allInputTokens = 0;
+let allOutputTokens = 0;
 
 document.addEventListener("DOMContentLoaded", function (event) {
   // 翻訳するボタンをクリックしたときの処理
@@ -19,13 +22,11 @@ document.addEventListener("DOMContentLoaded", function (event) {
 // 実行
 // 各要素を取得、翻訳して置換する
 function exec() {
-  console.time("exec_time");
+  console.time("execTime");
   allNodes = document.querySelectorAll("body *"); // DOMの揺らぎに対応するため、一度全てのノードを取得
   const textNodes = []; // selectorsで指定したセレクターのエレメントとテキストをここに格納
   const selectors = ["h1", "h2", "h3", "p", "li"];
   const splittedNodes = [];
-  // TODO promisesに翻訳処理実行したものをプッシュしておく
-  const promises = [];
 
   // 連想配列としてelementとtextContentを格納
   selectors.forEach((selector) => {
@@ -45,12 +46,18 @@ function exec() {
   textNodes.forEach((textNode) => {
     textCount += textNode.textContent.length;
     splittedNodes.push(textNode);
-    if (textCount > 3000) {
+    if (textCount > 1500) {
       translateTextNodes(splittedNodes);
       // 初期化
       textCount = 0;
       splittedNodes.length = 0;
     }
+  });
+
+  Promise.all(promises).then(() => {
+    console.log("allInputTokens: " + allInputTokens);
+    console.log("allOutputTokens: " + allOutputTokens);
+    console.timeEnd("execTime");
   });
 }
 // 翻訳結果を要素に置換
@@ -70,17 +77,18 @@ function replaceContent(textNodes) {
 
 // テキストノードの翻訳
 function translateTextNodes(textNodes) {
-  sendAndReceiveTranslateData(textNodes)
+  const promise = sendAndReceiveTranslateData(textNodes)
     .then((response) => {
       const translatedTextNodes = response.translatedTextNodes;
-      console.log(translatedTextNodes);
-      console.log("input_tokens:" + response.input_tokens);
-      console.log("output_tokens:" + response.output_tokens);
+      allInputTokens += response.input_tokens;
+      allOutputTokens += response.output_tokens;
       replaceContent(translatedTextNodes);
     })
     .catch((error) => {
       console.error(error);
     });
+
+    promises.push(promise);
 }
 
 // 翻訳APIへのリクエストの送受信
