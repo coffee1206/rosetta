@@ -2,7 +2,8 @@
   "devDependencies": {
     "@types/chrome": "^0.0.266",
     "typescript": "^5.4.5",
-    "vite": "^5.2.10"
+    "vite": "^5.2.10",
+    "vite-plugin-static-copy": "^1.0.3"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
