@@ -7,6 +7,6 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "build": "tsc && vite build && vite build --config=ts_compile_settings/vite.config.content_script.js && vite build --config=ts_compile_settings/vite.config.background_script.js"
   }
 }
