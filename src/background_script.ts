@@ -1,7 +1,19 @@
+interface TextNode {
+  selector: string;
+  elementIndex: number;
+  textContent: string;
+};
+
+interface TranslateResponse {
+  translatedTextNodes: TextNode[];
+  input_tokens: number;
+  output_tokens: number;
+}
+
 // オプションからAPIキーを取得する
-function getApiKey() {
+function getApiKey(): Promise<string> {
   return new Promise((resolve, reject) => {
-    chrome.storage.sync.get("apiKey", function (result) {
+    chrome.storage.sync.get("apiKey", (result: { apiKey?: string }) => {
       if (result.apiKey) {
         resolve(result.apiKey);
       } else {
@@ -12,16 +24,16 @@ function getApiKey() {
 }
 
 // 連想配列からテキストコンテンツを抽出し、LLMが読める形に変換する
-function extractTextContent(nodes) {
-  const textContentsWithTokenArray = nodes.map(node => `[START]${node.textContent}[END]`);
+function extractTextContent(nodes: TextNode[]) {
+  const textContentsWithTokenArray = nodes.map((node: TextNode) => `[START]${node.textContent}[END]`);
   const textContentsWithTokenString = textContentsWithTokenArray.join("");
   return textContentsWithTokenString;
 }
 
 // 連想配列内のテキストコンテンツを更新する
-function updateTextContent(nodes, translatedTextContents) {
+function updateTextContent(nodes: TextNode[], translatedTextContents: string) {
   const tokenRegex = RegExp("\\[START\\]([\\s\\S]*?)\\[END\\]", "g");
-  const removeTokenArray = [];
+  const removeTokenArray: string[] = [];
   let matchText;
 
   while ((matchText = tokenRegex.exec(translatedTextContents)) !== null) {
@@ -35,7 +47,7 @@ function updateTextContent(nodes, translatedTextContents) {
 }
 
 // 取得した配列を翻訳する
-async function translateNodes(nodes) {
+async function translateNodes(nodes: TextNode[]) {
   const apiKey = await getApiKey();
   const textContents = extractTextContent(nodes);
   const response = await fetch("https://api.cohere.ai/v1/chat", {
@@ -83,7 +95,7 @@ async function translateNodes(nodes) {
 }
 
 // content.jsからのリクエストを受け取って、関数実行後に返す
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
   if (request.type === "translate") {
     translateNodes(request.text)
       .then((content) => {
@@ -94,4 +106,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       });
     return true;
   }
+
+  return;
 });

@@ -1,11 +1,19 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const apiKeyInput = document.getElementById("api-key");
-  const saveButton = document.getElementById("save-btn");
+  const apiKeyInput = document.getElementById("api-key") as HTMLInputElement;
+  const saveButton = document.getElementById("save-btn") as HTMLElement;
 
-  saveButton.addEventListener("click", function () {
-    const apiKey = apiKeyInput.value.trim();
-    chrome.storage.sync.set({ apiKey: apiKey }, function () {
-      console.log("saved!");
+  if (saveButton) {
+    saveButton.addEventListener("click", function () {
+      if (apiKeyInput) {
+        const apiKey = apiKeyInput.value.trim();
+        chrome.storage.sync.set({ apiKey: apiKey }, function () {
+          console.log("saved!");
+        });
+      } else {
+        console.error("apiKeyInputが見つかりません。");
+      }
     });
-  });
+  } else {
+    console.error("saveButtonが見つかりません。");
+  }
 });

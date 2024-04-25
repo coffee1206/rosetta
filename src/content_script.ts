@@ -1,41 +1,55 @@
-let allNodes = null;
-let promises = [];
-let allInputTokens = 0;
-let allOutputTokens = 0;
+interface TextNode {
+  selector: string;
+  elementIndex: number;
+  textContent: string;
+};
 
-document.addEventListener("DOMContentLoaded", function (event) {
+interface TranslateResponse {
+  translatedTextNodes: TextNode[];
+  input_tokens: number;
+  output_tokens: number;
+};
+
+let allNodes: NodeListOf<Element> | null = null;
+let promises: Promise<void>[] = [];
+let allInputTokens:number = 0;
+let allOutputTokens:number = 0;
+
+document.addEventListener("DOMContentLoaded", (_event: Event): void => {
+
   // 翻訳するボタンをクリックしたときの処理
-  document
-    .getElementById("exec-translate")
-    .addEventListener("click", function () {
-      chrome.tabs.query({ active: true, currentWindow: true }, function (tab) {
-        chrome.scripting.executeScript({
-          target: { tabId: tab[0].id },
-          function: function () {
-            exec();
-          },
-        });
+  const button = document.getElementById("exec-translate");
+  button?.addEventListener("click", (): void => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs): void => {
+      if (!tabs.length || tabs[0].id === undefined) {
+        return;
+      }
+    
+      chrome.scripting.executeScript({
+        target: { tabId: tabs[0].id},
+        func: exec,
       });
     });
+  });
 });
 
 // 実行
 // 各要素を取得、翻訳して置換する
-function exec() {
+function exec(): void {
   console.time("execTime");
   allNodes = document.querySelectorAll("body *:not(header):not(footer):not(header *):not(footer *)"); // DOMの揺らぎに対応するため、一度全てのノードを取得
-  const textNodes = []; // selectorsで指定したセレクターのエレメントとテキストをここに格納
+  const textNodes: TextNode[] = []; // selectorsで指定したセレクターのエレメントとテキストをここに格納
   const selectors = ["h1", "h2", "h3", "p", "li"];
-  const splittedNodes = [];
+  const splittedNodes: TextNode[] = [];
 
   // 連想配列としてelementとtextContentを格納
   selectors.forEach((selector) => {
     let index = 0;
     document.querySelectorAll(selector + ":not(header):not(footer):not(header *):not(footer *)").forEach((element) => {
-      let textNode = {
+      const textNode: TextNode = {
         selector: selector,
         elementIndex: index++,
-        textContent: element.textContent.trim(),
+        textContent: element.textContent?.trim() || "",
       };
       textNodes.push(textNode);
     });
@@ -61,24 +75,20 @@ function exec() {
   });
 }
 // 翻訳結果を要素に置換
-function replaceContent(textNodes) {
+function replaceContent(textNodes: TextNode[]): void {
   console.log("textNodes:");
   console.log(textNodes);
   textNodes.forEach((textNode) => {
-    convertedTypeArrayAllNodes = [].map.call(allNodes, (element) => {
-      return element;
-    });
-    let targetElement = convertedTypeArrayAllNodes.filter(function (element) {
-      return element.localName === textNode.selector;
-    });
+    let convertedTypeArrayAllNodes: Element[] = Array.from(allNodes as NodeListOf<Element>);
+    let targetElement = convertedTypeArrayAllNodes.filter((element) => element.localName === textNode.selector);
     targetElement[textNode.elementIndex].textContent = textNode.textContent;
   });
 }
 
 // テキストノードの翻訳
-function translateTextNodes(textNodes) {
+function translateTextNodes(textNodes: TextNode[]): void {
   const promise = sendAndReceiveTranslateData(textNodes)
-    .then((response) => {
+    .then((response: TranslateResponse) => {
       const translatedTextNodes = response.translatedTextNodes;
       allInputTokens += response.input_tokens;
       allOutputTokens += response.output_tokens;
@@ -92,7 +102,7 @@ function translateTextNodes(textNodes) {
 }
 
 // 翻訳APIへのリクエストの送受信
-async function sendAndReceiveTranslateData(text) {
+async function sendAndReceiveTranslateData(text:TextNode[]): Promise<TranslateResponse> {
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(
       { type: "translate", text: text },
