@@ -1,20 +1,20 @@
-import { resolve } from 'node:path';
-import { defineConfig } from 'vite';
- 
+import { resolve } from "node:path";
+import { defineConfig } from "vite";
+
 export default defineConfig((opt) => {
   return {
-    root: 'src',
+    root: "src",
     build: {
-      outDir: '../dist',
+      outDir: "../dist",
       emptyOutDir: false,
       rollupOptions: {
         input: {
-          background_script: resolve(__dirname, '../src/content_script.ts'),
+          content_script: resolve(__dirname, "../src/content_script.ts"),
         },
         output: {
-          entryFileNames: '[name].js',
+          entryFileNames: "[name].js",
           inlineDynamicImports: true,
-          format: 'iife',
+          format: "iife",
         },
       },
     },
