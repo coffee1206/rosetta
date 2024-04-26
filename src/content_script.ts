@@ -10,18 +10,6 @@ interface TranslateResponse {
   output_tokens: number;
 };
 
-declare namespace globalVariable {
-  let allNodes: NodeListOf<Element> | null;
-  let promises: Promise<void>[];
-  let allInputTokens: number;
-  let allOutputTokens: number;
-}
-
-window.allNodes = document.querySelectorAll('someSelector'); // 例えば、特定の要素を取得
-window.promises = [];
-window.allInputTokens = 0;
-window.allOutputTokens = 0;
-
 document.addEventListener("DOMContentLoaded", (_event: Event): void => {
 
   // 翻訳するボタンをクリックしたときの処理
@@ -44,10 +32,14 @@ document.addEventListener("DOMContentLoaded", (_event: Event): void => {
 // 各要素を取得、翻訳して置換する
 function exec(): void {
   console.time("execTime");
-  allNodes = document.querySelectorAll("body *:not(header):not(footer):not(header *):not(footer *)"); // DOMの揺らぎに対応するため、一度全てのノードを取得
+  let allNodes: NodeListOf<Element> = document.querySelectorAll("body *:not(header):not(footer):not(header *):not(footer *)"); // DOMの揺らぎに対応するため、一度全てのノードを取得
   const textNodes: TextNode[] = []; // selectorsで指定したセレクターのエレメントとテキストをここに格納
   const selectors = ["h1", "h2", "h3", "p", "li"];
   const splittedNodes: TextNode[] = [];
+  let promises:Promise<void>[] = [];
+  let allInputTokens:number = 0;
+  let allOutputTokens:number = 0;
+
 
   // 連想配列としてelementとtextContentを格納
   selectors.forEach((selector) => {
@@ -79,6 +71,18 @@ async function sendAndReceiveTranslateData(text:TextNode[]): Promise<TranslateRe
         }
       }
     );
+  });
+}
+
+// 翻訳結果を要素に置換
+function replaceContent(textNodes: TextNode[]): void {
+  console.log("---------------------------translated---------------------------");
+  console.log(textNodes);
+  console.log("----------------------------------------------------------------");
+  textNodes.forEach((textNode) => {
+    let convertedTypeArrayAllNodes: Element[] = Array.from(allNodes as NodeListOf<Element>);
+    let targetElement = convertedTypeArrayAllNodes.filter((element) => element.localName === textNode.selector);
+    targetElement[textNode.elementIndex].textContent = textNode.textContent;
   });
 }
   
@@ -115,15 +119,5 @@ function translateTextNodes(textNodes: TextNode[]): void {
     console.log("allInputTokens: " + allInputTokens);
     console.log("allOutputTokens: " + allOutputTokens);
     console.timeEnd("execTime");
-  });
-}
-// 翻訳結果を要素に置換
-function replaceContent(textNodes: TextNode[]): void {
-  console.log("textNodes:");
-  console.log(textNodes);
-  textNodes.forEach((textNode) => {
-    let convertedTypeArrayAllNodes: Element[] = Array.from(allNodes as NodeListOf<Element>);
-    let targetElement = convertedTypeArrayAllNodes.filter((element) => element.localName === textNode.selector);
-    targetElement[textNode.elementIndex].textContent = textNode.textContent;
   });
 }
