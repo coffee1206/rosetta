@@ -10,10 +10,17 @@ interface TranslateResponse {
   output_tokens: number;
 };
 
-let allNodes: NodeListOf<Element> | null = null;
-let promises: Promise<void>[] = [];
-let allInputTokens:number = 0;
-let allOutputTokens:number = 0;
+declare namespace globalVariable {
+  let allNodes: NodeListOf<Element> | null;
+  let promises: Promise<void>[];
+  let allInputTokens: number;
+  let allOutputTokens: number;
+}
+
+window.allNodes = document.querySelectorAll('someSelector'); // 例えば、特定の要素を取得
+window.promises = [];
+window.allInputTokens = 0;
+window.allOutputTokens = 0;
 
 document.addEventListener("DOMContentLoaded", (_event: Event): void => {
 
@@ -55,8 +62,44 @@ function exec(): void {
     });
   });
 
+  // 翻訳APIへのリクエストの送受信
+async function sendAndReceiveTranslateData(text:TextNode[]): Promise<TranslateResponse> {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage(
+      { type: "translate", text: text },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError.message);
+          return;
+        }
+        if (response.success) {
+          resolve(response.content);
+        } else {
+          reject(response.error);
+        }
+      }
+    );
+  });
+}
+  
+// テキストノードの翻訳
+function translateTextNodes(textNodes: TextNode[]): void {
+  const promise = sendAndReceiveTranslateData(textNodes)
+    .then((response: TranslateResponse) => {
+      const translatedTextNodes = response.translatedTextNodes;
+      allInputTokens += response.input_tokens;
+      allOutputTokens += response.output_tokens;
+      replaceContent(translatedTextNodes);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+
+    promises.push(promise);
+}
+
   // テキストノードを分割して翻訳に投げる
-  let textCount = 0;
+  let textCount: number = 0;
   textNodes.forEach((textNode) => {
     textCount += textNode.textContent.length;
     splittedNodes.push(textNode);
@@ -82,41 +125,5 @@ function replaceContent(textNodes: TextNode[]): void {
     let convertedTypeArrayAllNodes: Element[] = Array.from(allNodes as NodeListOf<Element>);
     let targetElement = convertedTypeArrayAllNodes.filter((element) => element.localName === textNode.selector);
     targetElement[textNode.elementIndex].textContent = textNode.textContent;
-  });
-}
-
-// テキストノードの翻訳
-function translateTextNodes(textNodes: TextNode[]): void {
-  const promise = sendAndReceiveTranslateData(textNodes)
-    .then((response: TranslateResponse) => {
-      const translatedTextNodes = response.translatedTextNodes;
-      allInputTokens += response.input_tokens;
-      allOutputTokens += response.output_tokens;
-      replaceContent(translatedTextNodes);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-
-    promises.push(promise);
-}
-
-// 翻訳APIへのリクエストの送受信
-async function sendAndReceiveTranslateData(text:TextNode[]): Promise<TranslateResponse> {
-  return new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage(
-      { type: "translate", text: text },
-      (response) => {
-        if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError.message);
-          return;
-        }
-        if (response.success) {
-          resolve(response.content);
-        } else {
-          reject(response.error);
-        }
-      }
-    );
   });
 }
