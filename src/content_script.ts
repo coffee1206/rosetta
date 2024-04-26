@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", (_event: Event): void => {
 function exec(): void {
   console.time("execTime");
   let allNodes: NodeListOf<Element> = document.querySelectorAll("body *:not(header):not(footer):not(header *):not(footer *)"); // DOMの揺らぎに対応するため、一度全てのノードを取得
+  let trimmedNodes: Element[] = Array.from(allNodes).filter((element) => element.textContent?.trim() !== ""); // allNodesから空白を除いたノードを取得
   const textNodes: TextNode[] = []; // selectorsで指定したセレクターのエレメントとテキストをここに格納
   const selectors = ["h1", "h2", "h3", "p", "li"];
   const splittedNodes: TextNode[] = [];
@@ -45,12 +46,14 @@ function exec(): void {
   selectors.forEach((selector) => {
     let index = 0;
     document.querySelectorAll(selector + ":not(header):not(footer):not(header *):not(footer *)").forEach((element) => {
-      const textNode: TextNode = {
-        selector: selector,
-        elementIndex: index++,
-        textContent: element.textContent?.trim() || "",
-      };
-      textNodes.push(textNode);
+      if (element.textContent?.trim() !== "") { 
+        const textNode: TextNode = {
+          selector: selector,
+          elementIndex: index++,
+          textContent: element.textContent?.trim() || "",
+        };
+        textNodes.push(textNode);
+      }
     });
   });
 
@@ -80,8 +83,7 @@ function replaceContent(textNodes: TextNode[]): void {
   console.log(textNodes);
   console.log("----------------------------------------------------------------");
   textNodes.forEach((textNode) => {
-    let convertedTypeArrayAllNodes: Element[] = Array.from(allNodes as NodeListOf<Element>);
-    let targetElement = convertedTypeArrayAllNodes.filter((element) => element.localName === textNode.selector);
+    let targetElement = trimmedNodes.filter((element) => element.localName === textNode.selector);
     targetElement[textNode.elementIndex].textContent = textNode.textContent;
   });
 }
