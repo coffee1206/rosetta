@@ -57,7 +57,7 @@ async function translateNodes(nodes: TextNode[]) {
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "command-r",
+      model: "command-r-plus",
       chat_history: [
         {
           role: "USER",
