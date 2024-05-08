@@ -109,7 +109,7 @@ function translateTextNodes(textNodes: TextNode[]): void {
   textNodes.forEach((textNode) => {
     textCount += textNode.textContent.length;
     splittedNodes.push(textNode);
-    if (textCount > 1500) {
+    if (textCount > 500) {
       translateTextNodes(splittedNodes);
       // 初期化
       textCount = 0;
