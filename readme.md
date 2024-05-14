@@ -1,4 +1,4 @@
-# Rosetta Chrome Extension
+# Rosetta(GPT-4o translater)
 
 GPT-4oでページ翻訳するツール
 
