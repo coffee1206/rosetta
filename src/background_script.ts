@@ -50,26 +50,21 @@ function updateTextContent(nodes: TextNode[], translatedTextContents: string) {
 async function translateNodes(nodes: TextNode[]) {
   const apiKey = await getApiKey();
   const textContents = extractTextContent(nodes);
-  const response = await fetch("https://api.cohere.ai/v1/chat", {
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "command-r-plus",
-      chat_history: [
+      model: "gpt-4o",
+      messages: [
         {
-          role: "USER",
-          message:
-          "あなたは優秀な翻訳家です。ユーザーから文字列が提供されます。[START]から[END]毎に文、または単語の翻訳を行い、中身を置換してください。[START]と[END]を勝手に消さないでください。固有名詞と思われる単語は翻訳しないでください。",
+          role: "system",
+          content: "あなたは優秀な翻訳家です。ユーザーから文字列が提供されます。[START]から[END]毎に文、または単語の翻訳を行い、中身を置換してください。[START]と[END]を勝手に消さないでください。固有名詞と思われる単語は翻訳しないでください。以下がその文字列になります。",
         },
-        {
-          role: "CHATBOT",
-          message: "はい、私は優秀な翻訳家です。以下が回答になります。",
-        },
+        { role: "user", content: textContents },
       ],
-      message: textContents,
       max_tokens: 2048,
     }),
   });
@@ -81,9 +76,10 @@ async function translateNodes(nodes: TextNode[]) {
   }
 
   const data = await response.json();
-  const translatedTextContents = data.text.trim();
-  const input_tokens = data.meta.tokens.input_tokens;
-  const output_tokens = data.meta.tokens.output_tokens;
+  console.log(data);
+  const translatedTextContents = data.choices[0].message.content;
+  const input_tokens = data.usage.prompt_tokens;
+  const output_tokens = data.usage.completion_tokens;
 
   const translatedTextNodes = updateTextContent(nodes, translatedTextContents);
 
