@@ -1,21 +1,15 @@
-popup.html
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>rosetta</title>
-    <style>
-        body {
-            width: 300px;
-            height: 200px;
-        }
-    </style>
+    <title>Rosetta Translator</title>
+    <link rel="stylesheet" href="/styles/tailwind.css" />
 </head>
-<body>
-    <h3>翻訳するやつ</h1>
-    <button id="exec-translate">翻訳</button>
-    <p id="message"></p>
-    <script type="module" src="content_script.ts" ></script>
+<body class="w-64 h-32 bg-white p-4">
+    <div class="block">
+        <h3 class="text-lg text-center font-semibold mb-4">Rosetta Translater</h3>
+    </div>
+    <button class="w-full text-base bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none" id="exec-translate">Translate</button>
+    <script type="module" src="content_script.ts"></script>
 </body>
 </html>
