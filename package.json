@@ -7,6 +7,12 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc && vite build && vite build --config=ts_compile_settings/vite.config.content_script.js && vite build --config=ts_compile_settings/vite.config.background_script.js"
+    "build:css": "npx tailwindcss -i ./src/styles/tailwind.css -o ./dist/styles/tailwind.css",
+    "build": "tsc && vite build && npm run build:css && vite build --config=ts_compile_settings/vite.config.content_script.js && vite build --config=ts_compile_settings/vite.config.background_script.js"
+  },
+  "dependencies": {
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3"
   }
 }
