@@ -15,6 +15,13 @@ document.addEventListener("DOMContentLoaded", (_event: Event): void => {
   // 翻訳するボタンをクリックしたときの処理
   const button = document.getElementById("exec-translate");
   button?.addEventListener("click", (): void => {
+    
+    // 実行中のボタン描画
+    button.classList.add("bg-gray-500");
+    button.classList.remove("bg-blue-500");
+    button.classList.remove("hover:bg-blue-600");
+    button.innerText="Processing..."
+
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs): void => {
       if (!tabs.length || tabs[0].id === undefined) {
         return;
@@ -23,8 +30,19 @@ document.addEventListener("DOMContentLoaded", (_event: Event): void => {
       chrome.scripting.executeScript({
         target: { tabId: tabs[0].id},
         func: exec,
-      });
+      })
     });
+
+    // 翻訳完了後のボタン描画
+    chrome.runtime.onMessage.addListener((request, _sender, _sendResponse) => {
+      if (request.type === "taskComplete") {
+        button.classList.add("bg-orange-500");
+        button.classList.add("hover:bg-blue-600");
+        button.classList.remove("bg-gray-500");
+        button.innerText="translated!!";
+      }
+      return;
+    })
   });
 });
 
@@ -118,6 +136,9 @@ function translateTextNodes(textNodes: TextNode[]): void {
   });
 
   Promise.all(promises).then(() => {
+    chrome.runtime.sendMessage(
+      { type: "taskComplete" },
+    );
     console.log("allInputTokens: " + allInputTokens);
     console.log("allOutputTokens: " + allOutputTokens);
     console.timeEnd("execTime");
